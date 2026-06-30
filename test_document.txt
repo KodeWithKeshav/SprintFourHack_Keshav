@@ -1,0 +1,54 @@
+CONFIDENTIAL — CLIENT INTAKE SUMMARY
+
+Prepared by: New Client Onboarding, Sterling & Cobb Financial Advisors
+Document Reference: SC-INTAKE-2024-0312
+
+---
+
+Client: [[Renata Alvarez|name]]
+Account Reference: [[SC-4471-AX|account]]
+Date of Birth: [[02/08/1983|dob]]
+Branch Office: [[Downtown Seattle|location]]
+Internal File Code: [[FX-9921|id]]
+
+---
+
+INTAKE SUMMARY
+
+Renata Alvarez was onboarded as a new wealth management client on June 5th. Renata Alvarez can be reached at 425-771-3390 for scheduling, and the email on file is renata.alvarez83@fastmail.com. The mailing address is 1502 Cascade View Drive, Redmond, WA 98052.
+
+The initial deposit into the managed account, made by Renata Alvarez, was $340,000, and stated annual income for suitability assessment purposes is $185,000.
+
+The Social Security Number collected for account verification under federal requirements is 778-04-2256.
+
+---
+
+HOUSEHOLD NOTES
+
+[[Downtown Seattle|location]]
+
+Renata Alvarez mentioned that partner Felix Hoang may open a joint account in the future. Contact information for Felix Hoang was not collected at this time.
+
+---
+
+INTERNAL PROCESSING NOTES (NOT FOR CLIENT DISTRIBUTION)
+
+[[FX-9921|id]]
+
+Onboarding workflow stage: STAGE-3-COMPLETE, used for internal pipeline tracking only and not specific to any one client file.
+
+This intake file's internal codename is "Project Cascade View" — used solely for internal document routing and not an identifier of the client.
+
+Compliance review assigned to officer queue extension 3381.
+
+---
+
+SUITABILITY DISCLOSURE
+
+Standard risk disclosure applies to all new accounts opened under this advisory program, regardless of household size or account type. This paragraph is boilerplate and identical across all client files.
+
+---
+
+DOCUMENT CONTROL
+
+Form version: INTAKE-FORM-v12, used company-wide. Filed under processing batch PB-2024-0788 for internal archival purposes.
