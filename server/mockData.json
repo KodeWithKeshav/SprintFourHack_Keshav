@@ -1,0 +1,90 @@
+{
+  "document": {
+    "id": "doc-001",
+    "title": "Project Lighthouse — Q3 Strategy Update",
+    "body": "MEMORANDUM\n\nTo: Project Lighthouse Core Team\nFrom: Sarah Mitchell, VP of Strategic Partnerships\nDate: March 15, 2024\nRe: Q3 Partnership Pipeline & Resource Allocation\n\nTeam,\n\nFollowing last week's executive review, I want to share key updates on our partnership pipeline and next steps for Q3.\n\n1. Partner Onboarding Status\n\nWe have finalized agreements with three new enterprise clients. David Chen from our legal team has reviewed all contracts and confirmed compliance with our standard terms. Please direct any contract-related questions to David at extension 4200.\n\nFor reference, my direct line is 555-0147 if you need to reach me outside of regular hours regarding urgent partnership matters.\n\n2. Budget & Financials\n\nThe Q3 operating budget has been approved at $2.4M, a 15% increase over Q2. Finance has flagged that all expense reports must reference the project code PLH-2024-Q3 and be submitted through the new procurement portal by the 5th of each month.\n\nPlease note that reimbursement checks will be mailed to the address on file. If your mailing address has changed, update it in the HR portal and notify payroll. My SSN for the tax withholding verification is 482-91-0053 — please handle this with appropriate confidentiality.\n\n3. Upcoming Milestones\n\nJames Whitfield from Acme Corp has confirmed their intent to sign the partnership agreement by end of month. This is a significant win — Acme represents a $1.2M annual revenue opportunity. James will be visiting our office on April 3rd for the signing ceremony.\n\nPlease ensure the conference room on the 4th floor is reserved for the full day.\n\n4. Action Items\n\n- All team leads: submit Q3 resource requests by March 22nd\n- Legal: finalize the Acme Corp partnership agreement\n- Marketing: prepare co-branded announcement materials\n- Finance: confirm budget allocation codes for new partnerships\n\nLet's keep the momentum going. Reach me at sarah.mitchell@meridian.com or on Slack for any questions.\n\nBest regards,\nSarah Mitchell\nVP of Strategic Partnerships\nMeridian Industries"
+  },
+  "redactions": [
+    {
+      "id": "r1",
+      "start": 16,
+      "end": 34,
+      "text": "Project Lighthouse",
+      "type": "organization",
+      "confidence": 0.68,
+      "groundTruth": "falsePositive"
+    },
+    {
+      "id": "r2",
+      "start": 51,
+      "end": 65,
+      "text": "Sarah Mitchell",
+      "type": "name",
+      "confidence": 0.95,
+      "groundTruth": "correct"
+    },
+    {
+      "id": "r3",
+      "start": 102,
+      "end": 116,
+      "text": "March 15, 2024",
+      "type": "date",
+      "confidence": 0.55,
+      "groundTruth": "falsePositive"
+    },
+    {
+      "id": "r4",
+      "start": 121,
+      "end": 123,
+      "text": "Q3",
+      "type": "identifier",
+      "confidence": 0.42,
+      "groundTruth": "falsePositive"
+    },
+    {
+      "id": "r5",
+      "start": 389,
+      "end": 399,
+      "text": "David Chen",
+      "type": "name",
+      "confidence": 0.92,
+      "groundTruth": "correct"
+    },
+    {
+      "id": "r6",
+      "start": 604,
+      "end": 612,
+      "text": "555-0147",
+      "type": "phone",
+      "confidence": 0.31,
+      "groundTruth": "missed"
+    },
+    {
+      "id": "r7",
+      "start": 1177,
+      "end": 1188,
+      "text": "482-91-0053",
+      "type": "ssn",
+      "confidence": 0.99,
+      "groundTruth": "correct"
+    },
+    {
+      "id": "r8",
+      "start": 1269,
+      "end": 1284,
+      "text": "James Whitfield",
+      "type": "name",
+      "confidence": 0.38,
+      "groundTruth": "missed"
+    },
+    {
+      "id": "r9",
+      "start": 1908,
+      "end": 1935,
+      "text": "sarah.mitchell@meridian.com",
+      "type": "email",
+      "confidence": 0.97,
+      "groundTruth": "correct"
+    }
+  ]
+}
