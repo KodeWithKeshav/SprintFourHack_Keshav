@@ -3,7 +3,7 @@ export default function ExportButton({ allClear, documentBody, enrichedRedaction
     if (!allClear || !documentBody) return;
 
     const redactSpans = enrichedRedactions
-      .filter((r) => r.status === 'redacted' || r.status === 'approved')
+      .filter((r) => r.status === 'redacted' || r.status === 'approved' || r.status === 'auto-redacted')
       .sort((a, b) => b.start - a.start);
 
     let redacted = documentBody;

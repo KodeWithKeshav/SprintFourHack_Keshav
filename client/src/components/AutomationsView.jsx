@@ -40,6 +40,10 @@ export default function AutomationsView() {
     }
   ]);
 
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [formData, setFormData] = useState({ condition: 'Confidence', value: '90%', action: 'Auto-confirm' });
+
   const toggleRule = (id) => {
     setRules(prev => prev.map(rule =>
       rule.id === id ? { ...rule, active: !rule.active } : rule
@@ -47,7 +51,46 @@ export default function AutomationsView() {
   };
 
   const deleteRule = (id) => {
-    setRules(prev => prev.filter(rule => rule.id !== id));
+    if (window.confirm("Are you sure you want to delete this automation rule?")) {
+      setRules(prev => prev.filter(rule => rule.id !== id));
+    }
+  };
+
+  const handleEdit = (rule) => {
+    setEditingId(rule.id);
+    setFormData({
+      condition: rule.highlights?.trigger || 'Confidence',
+      value: rule.highlights?.value || '',
+      action: rule.highlights?.action || 'Auto-confirm'
+    });
+    setShowForm(true);
+  };
+
+  const handleSave = () => {
+    if (editingId) {
+      setRules(prev => prev.map(rule => rule.id === editingId ? {
+        ...rule,
+        description: `When ${formData.condition} is ${formData.value}, then ${formData.action}.`,
+        highlights: { trigger: formData.condition, value: formData.value, scope: 'Global', action: formData.action },
+        time: "Just updated"
+      } : rule));
+    } else {
+      setRules(prev => [
+        {
+          id: Date.now(),
+          badge: "Custom Rule",
+          time: "Just created",
+          description: `When ${formData.condition} is ${formData.value}, then ${formData.action}.`,
+          highlights: { trigger: formData.condition, value: formData.value, scope: 'Global', action: formData.action },
+          active: true,
+          badgeStyle: "bg-surface-variant text-on-surface-variant"
+        },
+        ...prev
+      ]);
+    }
+    setShowForm(false);
+    setEditingId(null);
+    setFormData({ condition: 'Confidence', value: '90%', action: 'Auto-confirm' });
   };
 
   return (
@@ -62,11 +105,76 @@ export default function AutomationsView() {
               Define rules for intelligent document processing and auto-redaction.
             </p>
           </div>
-          <button className="bg-primary text-on-primary font-bold px-6 py-3 rounded-md hover:bg-primary-container hover:text-on-primary-container transition-all flex items-center gap-2 shadow-sm">
-            <span className="material-symbols-outlined">add</span>
-            New Rule
-          </button>
+          {!showForm && (
+            <button 
+              className="bg-primary text-on-primary font-bold px-6 py-3 rounded-md hover:bg-primary-container hover:text-on-primary-container transition-all flex items-center gap-2 shadow-sm"
+              onClick={() => {
+                setEditingId(null);
+                setFormData({ condition: 'Confidence', value: '90%', action: 'Auto-confirm' });
+                setShowForm(true);
+              }}
+            >
+              <span className="material-symbols-outlined">add</span>
+              New Rule
+            </button>
+          )}
         </div>
+
+        {/* Rule Form */}
+        {showForm && (
+          <div className="paper-card rounded-xl p-8 bg-surface-container-low border border-outline-variant/50 animate-[fadeIn_0.2s_ease-out]">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-headline-md text-xl font-bold text-on-surface">{editingId ? 'Edit Rule' : 'Create New Automation'}</h3>
+              <button 
+                className="text-on-surface-variant hover:text-error transition-colors"
+                onClick={() => { setShowForm(false); setEditingId(null); }}
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-4 flex-wrap">
+                <span className="font-bold text-on-surface">When</span>
+                <select 
+                  className="bg-surface-container border border-outline-variant/50 rounded-md px-4 py-2 font-body-ui text-sm text-on-surface focus:outline-none"
+                  value={formData.condition}
+                  onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
+                >
+                  <option>Confidence</option>
+                  <option>Document Type</option>
+                  <option>Entity Type</option>
+                </select>
+                <span className="font-bold text-on-surface">is</span>
+                <input 
+                  type="text" 
+                  placeholder="e.g. 90% or W-2 Form"
+                  className="bg-surface-container border border-outline-variant/50 rounded-md px-4 py-2 font-body-ui text-sm text-on-surface focus:outline-none flex-1 min-w-[200px]"
+                  value={formData.value}
+                  onChange={(e) => setFormData({ ...formData, value: e.target.value })}
+                />
+                <span className="font-bold text-on-surface">then</span>
+                <select 
+                  className="bg-surface-container border border-outline-variant/50 rounded-md px-4 py-2 font-body-ui text-sm text-on-surface focus:outline-none"
+                  value={formData.action}
+                  onChange={(e) => setFormData({ ...formData, action: e.target.value })}
+                >
+                  <option>Auto-confirm</option>
+                  <option>Full Masking</option>
+                  <option>Flag for Manual Review</option>
+                  <option>Synthetic pseudonym</option>
+                </select>
+              </div>
+              <div className="flex justify-end mt-4">
+                <button 
+                  className="bg-primary text-on-primary font-bold px-6 py-2 rounded-md hover:bg-primary-container transition-all"
+                  onClick={handleSave}
+                >
+                  {editingId ? 'Save Changes' : 'Create Rule'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Rule List */}
         <div className="flex flex-col gap-6">
@@ -104,7 +212,10 @@ export default function AutomationsView() {
                   <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">{rule.active ? 'Active' : 'Paused'}</span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <button className="text-secondary hover:text-primary transition-colors">
+                  <button 
+                    className="text-secondary hover:text-primary transition-colors"
+                    onClick={() => handleEdit(rule)}
+                  >
                     <span className="material-symbols-outlined">edit</span>
                   </button>
                   <button 

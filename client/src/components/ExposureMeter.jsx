@@ -13,7 +13,7 @@ export default function ExposureMeter({ highRiskCount, totalPending, allClear })
       <div className="bg-tertiary text-on-tertiary px-4 py-1.5 rounded-full flex items-center gap-sm">
         <span className="material-symbols-outlined text-[18px]">warning</span>
         <span className="font-label-caps text-label-caps">
-          {highRiskCount} unresolved high-risk item{highRiskCount !== 1 ? 's' : ''}
+          {highRiskCount} item{highRiskCount !== 1 ? 's' : ''} needing confirmation
         </span>
       </div>
     );

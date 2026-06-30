@@ -33,25 +33,33 @@ function buildVerifyPrompt(documentText, annotations) {
     ? JSON.stringify(annotations, null, 2)
     : '(none — scan the entire document for PII)';
 
-  return `You are reviewing a document for personally identifying or sensitive information (PII). The document may be medical, financial, legal, or general business in nature — adapt your judgment to the domain.
+  return `You are reviewing a document for personally identifying or sensitive information (PII), following professional redaction standards.
 
-You are given:
-1. The full document text.
-2. A list of existing suggested redaction annotations.
+Step 1: Identify the document's likely domain — legal, medical, financial, HR/employment, or general business — based on its content and structure.
 
-Do two things:
-A. For each existing annotation, judge whether it is correctly identified as sensitive (CORRECT) or is actually harmless (FALSE_POSITIVE). Briefly state the reason.
-B. Independently scan the entire document for any sensitive information NOT covered by an existing annotation (e.g. names, phone numbers, emails, addresses, SSNs/IDs, account or policy numbers, medical record numbers, diagnoses, dates of birth, financial figures tied to an identifiable person). List these as MISSED.
+Step 2: Apply domain-appropriate sensitivity standards:
+- LEGAL documents: redact client names, SSNs, case-linked financial figures, addresses, phone numbers, opposing party details where identifying. Internal case/file reference numbers and law firm internal codenames are typically NOT sensitive unless they directly expose a client identity.
+- MEDICAL documents: apply HIPAA-aligned judgment — redact patient names, dates of birth, medical record numbers, diagnoses, treatment details, provider names if identifying, contact info. Treat diagnosis/condition information as high severity, not just identifiers.
+- FINANCIAL documents: redact account numbers, SSNs/tax IDs, exact balances or salary figures tied to a named individual, routing numbers, full names tied to financial detail. General aggregate figures with no individual tied to them are typically NOT sensitive.
+- HR/EMPLOYMENT documents: redact employee names, SSNs, salary, performance details, employee ID numbers, home contact info.
+- GENERAL/BUSINESS: use standard PII judgment — names, contact info, government IDs, financial details tied to an individual.
 
-Sensitive categories include but are not limited to: person names, phone numbers, emails, physical addresses, government IDs, financial account numbers, medical record numbers, diagnoses/conditions, dates of birth.
+Step 3: For each existing annotation, judge CORRECT or FALSE_POSITIVE using the domain-appropriate standard above, with a brief reason referencing why it does or doesn't matter in this domain context.
 
-Return ONLY valid JSON, no markdown, no commentary, in this exact shape:
+Step 4: Independently scan the full document for sensitive information not covered by an existing annotation, using the same domain-appropriate standard, and list as MISSED.
+
+Step 5: Assign realistic, varied confidence per item. Confidence reflects certainty this is genuinely the stated type — a clearly formatted SSN matching ###-##-#### is 0.9+; a name in ambiguous context is 0.5–0.7. Assign a severity-appropriate type label ("high", "medium", or "low"). Severity reflects consequence if exposed — government IDs, financial account numbers, medical record numbers, and diagnoses are always 'high' severity regardless of confidence.
+
+CRITICAL INSTRUCTION FOR NAME SPANS: When identifying a name span, NEVER include honorifics or titles (Mr., Mrs., Ms., Dr., Prof., etc.) as part of the span text. The span should contain only the name itself (e.g. "Felix Hoang", not "Mr. Felix Hoang"). This keeps the sentence readable after redaction — "Ms. [REDACTED]" rather than "[REDACTED]" swallowing the title and losing the grammatical context, and avoids accidentally treating a generic title as if it were sensitive data.
+
+Return ONLY valid JSON, no markdown, no commentary:
 {
+  "detectedDomain": "legal" | "medical" | "financial" | "hr" | "general",
   "verified": [
-    { "text": "...", "type": "...", "originalStatus": "CORRECT" | "FALSE_POSITIVE", "confidence": 0.0-1.0, "reason": "..." }
+    { "text": "...", "type": "...", "originalStatus": "CORRECT" | "FALSE_POSITIVE", "confidence": 0.0-1.0, "severity": "high" | "medium" | "low", "reason": "..." }
   ],
   "missed": [
-    { "text": "...", "type": "...", "confidence": 0.0-1.0, "reason": "..." }
+    { "text": "...", "type": "...", "confidence": 0.0-1.0, "severity": "high" | "medium" | "low", "reason": "..." }
   ]
 }
 
@@ -145,6 +153,7 @@ function normalizeSpans(llmResult, documentText, originalAnnotations) {
       text: item.text,
       type: (item.type || 'unknown').toLowerCase().replace(/\s+/g, '_'),
       confidence: item.confidence ?? (groundTruth === 'correct' ? 0.9 : 0.5),
+      severity: item.severity || 'low',
       groundTruth,
       source: 'verified',
       reason: item.reason || '',
@@ -165,6 +174,7 @@ function normalizeSpans(llmResult, documentText, originalAnnotations) {
       text: item.text,
       type: (item.type || 'unknown').toLowerCase().replace(/\s+/g, '_'),
       confidence: item.confidence ?? 0.35,
+      severity: item.severity || 'high',
       groundTruth: 'missed',
       source: 'missed',
       reason: item.reason || '',
@@ -218,6 +228,7 @@ app.post('/api/verify', async (req, res) => {
         id: `doc-${Date.now()}`,
         title: 'Uploaded Document',
         body: documentText,
+        detectedDomain: llmResult.detectedDomain || 'general',
       },
       redactions,
     });

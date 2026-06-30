@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 
-export default function DocumentView({ documentBody, redactions, activeRedactionId, onSpanClick }) {
+export default function DocumentView({ documentBody, detectedDomain, redactions, activeRedactionId, onSpanClick }) {
   if (!documentBody) return null;
 
   // Build the text segments intermixed with spans
@@ -28,9 +28,9 @@ export default function DocumentView({ documentBody, redactions, activeRedaction
       spanClass += 'ring-2 ring-primary ring-offset-2 ring-offset-surface-container-lowest ';
     }
 
-    if (redaction.status === 'redacted' || redaction.status === 'approved') {
+    if (redaction.status === 'redacted' || redaction.status === 'approved' || redaction.status === 'auto-redacted') {
       spanClass += 'redaction-charcoal'; // [REDACTED: NAME] style from template
-    } else if (redaction.status === 'confirmed_safe' || redaction.status === 'dismissed') {
+    } else if (redaction.status === 'confirmed_safe' || redaction.status === 'dismissed' || redaction.status === 'auto-safe') {
       // Just normal text, but slightly muted
       spanClass += 'text-on-surface-variant bg-transparent';
     } else {
@@ -51,7 +51,10 @@ export default function DocumentView({ documentBody, redactions, activeRedaction
         onClick={() => onSpanClick(redaction)}
         title={`${redaction.type} (Confidence: ${(redaction.confidence * 100).toFixed(0)}%)`}
       >
-        {redaction.status === 'redacted' || redaction.status === 'approved' 
+        {(redaction.status === 'auto-redacted' || redaction.status === 'auto-safe') && (
+          <span className="text-primary mr-1 text-[10px] inline-block align-middle" title="Auto-resolved by System">✦</span>
+        )}
+        {redaction.status === 'redacted' || redaction.status === 'approved' || redaction.status === 'auto-redacted'
           ? `[REDACTED: ${redaction.type.toUpperCase()}]` 
           : documentBody.slice(redaction.start, redaction.end)}
       </span>
@@ -75,7 +78,14 @@ export default function DocumentView({ documentBody, redactions, activeRedaction
       <div className="flex justify-between items-start border-b border-outline-variant/20 pb-lg">
         <div>
           <h1 className="font-display-doc text-headline-lg text-primary mb-2">Document Review</h1>
-          <p className="font-label-caps text-label-caps text-on-surface-variant">Conseal Triage Engine</p>
+          <div className="flex items-center gap-4">
+            <p className="font-label-caps text-label-caps text-on-surface-variant">Conseal Triage Engine</p>
+            {detectedDomain && (
+              <span className="bg-primary/10 text-primary font-bold text-xs uppercase px-2 py-1 rounded-sm border border-primary/20">
+                Detected: {detectedDomain}
+              </span>
+            )}
+          </div>
         </div>
         <div className="text-right">
           <p className="font-body-ui text-label-sm text-on-surface-variant">Confidential</p>

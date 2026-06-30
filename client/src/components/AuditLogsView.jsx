@@ -1,61 +1,35 @@
-export default function AuditLogsView() {
-  const logs = [
-    {
-      timestamp: "Oct 24,\n14:22:10",
-      document: "NDA_Final_v2.pdf",
-      actionTitle: "Phone Number flagged",
-      actionDetail: "(+1) 555-0199",
-      decision: "CONFIRMED REDACTED",
-      decisionColor: "bg-surface-container/50 text-secondary border-outline-variant",
-      actor: "Reviewer 04",
-      confidence: "98%",
-      confidenceColor: "text-secondary border-secondary/30",
-    },
-    {
-      timestamp: "Oct 24,\n14:19:45",
-      document: "NDA_Final_v2.pdf",
-      actionTitle: "Email address detected",
-      actionDetail: "legal@conseal.ai",
-      decision: "CONFIRMED SAFE",
-      decisionColor: "bg-surface-container/50 text-secondary border-outline-variant",
-      actor: "Reviewer 04",
-      confidence: "92%",
-      confidenceColor: "text-secondary border-secondary/30",
-    },
-    {
-      timestamp: "Oct 24,\n13:55:02",
-      document: "Loan_Agreement_A.pdf",
-      actionTitle: "SSN detected",
-      actionDetail: "XXX-XX-4412",
-      decision: "FALSE POSITIVE",
-      decisionColor: "bg-surface-container/50 text-secondary border-outline-variant",
-      actor: "Reviewer 02",
-      confidence: "45%",
-      confidenceColor: "text-on-surface-variant border-outline-variant/50",
-    },
-    {
-      timestamp: "Oct 24,\n13:40:11",
-      document: "Compliance_v1.doc",
-      actionTitle: "Home address flagged",
-      actionDetail: "123 Willow Lane...",
-      decision: "CONFIRMED REDACTED",
-      decisionColor: "bg-surface-container/50 text-secondary border-outline-variant",
-      actor: "System AI",
-      confidence: "99%",
-      confidenceColor: "text-secondary border-secondary/30",
-    },
-    {
-      timestamp: "Oct 24,\n12:15:30",
-      document: "Employment_Contract.pdf",
-      actionTitle: "Passport Number detected",
-      actionDetail: "G1129930",
-      decision: "CONFIRMED REDACTED",
-      decisionColor: "bg-surface-container/50 text-secondary border-outline-variant",
-      actor: "Reviewer 04",
-      confidence: "87%",
-      confidenceColor: "text-secondary border-secondary/30",
+export default function AuditLogsView({ decisionLog = [] }) {
+  const getDecisionColor = (action) => {
+    switch (action) {
+      case 'redacted':
+      case 'approved':
+        return "bg-surface-container/50 text-secondary border-outline-variant";
+      case 'dismissed':
+        return "bg-surface-container/50 text-on-surface-variant border-outline-variant/50";
+      default:
+        return "bg-surface-container/50 text-on-surface-variant border-outline-variant";
     }
-  ];
+  };
+
+  const getDecisionText = (action) => {
+    switch (action) {
+      case 'redacted':
+      case 'approved':
+        return "CONFIRMED REDACTED";
+      case 'dismissed':
+        return "FALSE POSITIVE";
+      default:
+        return action.toUpperCase();
+    }
+  };
+
+  const formatTimestamp = (ts) => {
+    const date = new Date(ts);
+    return date.toLocaleString('en-US', { 
+      month: 'short', day: 'numeric', 
+      hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false 
+    }).replace(', ', ',\n');
+  };
 
   return (
     <div className="flex-1 overflow-y-auto p-12 bg-surface flex flex-col items-center">
@@ -117,39 +91,45 @@ export default function AuditLogsView() {
           </div>
 
           <div className="flex flex-col divide-y divide-outline-variant/20">
-            {logs.map((log, i) => (
-              <div key={i} className="grid grid-cols-12 gap-4 px-8 py-6 items-center hover:bg-surface-container-lowest/50 transition-colors">
-                
-                <div className="col-span-2 text-sm text-on-surface-variant whitespace-pre-line leading-snug">
-                  {log.timestamp}
-                </div>
-                
-                <div className="col-span-3 font-headline-md text-base font-bold text-on-surface pr-4">
-                  {log.document}
-                </div>
+            {decisionLog.length === 0 ? (
+              <div className="p-8 text-center text-on-surface-variant italic">No decisions recorded yet.</div>
+            ) : (
+              decisionLog.map((log) => (
+                <div key={log.id} className="grid grid-cols-12 gap-4 px-8 py-6 items-center hover:bg-surface-container-lowest/50 transition-colors">
+                  
+                  <div className="col-span-2 text-sm text-on-surface-variant whitespace-pre-line leading-snug">
+                    {formatTimestamp(log.timestamp)}
+                  </div>
+                  
+                  <div className="col-span-3 font-headline-md text-base font-bold text-on-surface pr-4">
+                    Current Document
+                  </div>
 
-                <div className="col-span-3 flex flex-col gap-1 pr-4">
-                  <span className="text-sm font-medium text-on-surface">{log.actionTitle}</span>
-                  <span className="text-xs text-on-surface-variant font-mono bg-surface-container-low px-2 py-0.5 rounded w-fit">{log.actionDetail}</span>
-                </div>
+                  <div className="col-span-3 flex flex-col gap-1 pr-4">
+                    <span className="text-sm font-medium text-on-surface">{log.piiType.replace(/_/g, ' ')} detected</span>
+                    <span className="text-xs text-on-surface-variant font-mono bg-surface-container-low px-2 py-0.5 rounded w-fit truncate max-w-full">
+                      {log.text}
+                    </span>
+                  </div>
 
-                <div className="col-span-2">
-                  <span className={`text-[9px] font-bold tracking-widest uppercase px-3 py-1 rounded-sm border ${log.decisionColor}`}>
-                    {log.decision}
-                  </span>
-                </div>
+                  <div className="col-span-2">
+                    <span className={`text-[9px] font-bold tracking-widest uppercase px-3 py-1 rounded-sm border ${getDecisionColor(log.action)}`}>
+                      {getDecisionText(log.action)}
+                    </span>
+                  </div>
 
-                <div className="col-span-1 text-sm text-on-surface-variant">
-                  {log.actor}
-                </div>
+                  <div className="col-span-1 text-sm text-on-surface-variant">
+                    Current Session
+                  </div>
 
-                <div className="col-span-1 flex justify-end">
-                  <div className={`w-12 h-8 rounded-full border flex items-center justify-center text-xs font-bold ${log.confidenceColor} bg-surface`}>
-                    {log.confidence}
+                  <div className="col-span-1 flex justify-end">
+                    <div className={`w-12 h-8 rounded-full border flex items-center justify-center text-xs font-bold bg-surface ${log.confidence > 0.8 ? 'text-secondary border-secondary/30' : 'text-on-surface-variant border-outline-variant/50'}`}>
+                      {(log.confidence * 100).toFixed(0)}%
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 

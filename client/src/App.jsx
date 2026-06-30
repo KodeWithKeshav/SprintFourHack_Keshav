@@ -52,6 +52,8 @@ export default function App() {
     approveRedaction,
     undo,
     reset,
+    skipItem,
+    initializeDocument,
   } = useRedactionState(redactions);
 
   const handleAnalyze = useCallback(async (documentText, annotations) => {
@@ -61,6 +63,7 @@ export default function App() {
       const data = await verifyDocument(documentText, annotations);
       setDocument(data.document);
       setRedactions(data.redactions);
+      initializeDocument(data.redactions);
       setCurrentView('workspace');
     } catch (err) {
       setError(err.message || 'Analysis failed. Please try again.');
@@ -76,6 +79,7 @@ export default function App() {
       const data = await fetchDocument();
       setDocument(data.document);
       setRedactions(data.redactions);
+      initializeDocument(data.redactions);
       setCurrentView('workspace');
     } catch (err) {
       setError(err.message || 'Failed to load demo document.');
@@ -111,6 +115,11 @@ export default function App() {
     dismissFalsePositive(redaction);
     setActiveRedactionId(null);
   }, [dismissFalsePositive]);
+
+  const handleSkip = useCallback((redaction) => {
+    skipItem(redaction);
+    setActiveRedactionId(null);
+  }, [skipItem]);
 
   const handleApprove = useCallback((redaction) => {
     approveRedaction(redaction);
@@ -271,6 +280,7 @@ export default function App() {
               <main className="flex-1 bg-surface-container/30 relative overflow-y-auto p-margin-page flex flex-col items-center">
                 <DocumentView
                   documentBody={document?.body}
+                  detectedDomain={document?.detectedDomain}
                   redactions={enrichedRedactions}
                   activeRedactionId={activeRedactionId}
                   onSpanClick={handleSpanClick}
@@ -286,13 +296,16 @@ export default function App() {
                   </h2>
                   <p className="text-label-sm text-on-surface-variant mt-1">Requiring manual intervention</p>
                 </div>
-                <TriageQueue
+                <TriageQueue 
                   pendingItems={pendingItems}
                   onDismiss={handleDismiss}
                   onApprove={handleApprove}
                   onReviewHighRisk={handleReviewHighRisk}
                   activeRedactionId={activeRedactionId}
-                  onItemFocus={handleItemFocus}
+                  onItemFocus={handleSpanClick}
+                  onSkip={handleSkip}
+                  decisionLog={decisionLog}
+                  undo={undo}
                 />
               </aside>
               
@@ -301,11 +314,11 @@ export default function App() {
           )
         )}
         
-        {currentView === 'directory' && <DirectoryView />}
+        {currentView === 'directory' && <DirectoryView onNavigateToWorkspace={() => setCurrentView('workspace')} />}
         {currentView === 'automations' && <AutomationsView />}
         {currentView === 'libraries' && <PiiLibrariesView />}
         {currentView === 'settings' && <SettingsView />}
-        {currentView === 'audit' && <AuditLogsView />}
+        {currentView === 'audit' && <AuditLogsView decisionLog={decisionLog} />}
         {currentView === 'help' && <HelpCenterView />}
       </div>
 

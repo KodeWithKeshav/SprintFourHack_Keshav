@@ -12,9 +12,11 @@ Conseal is a prototype tool for reviewing AI-suggested redactions in documents. 
 ## Running Locally
 
 1.  **Start the Backend**
+    You must configure the Gemini API key before starting the server.
     ```bash
     cd server
     npm install
+    echo "GEMINI_API_KEY=your_actual_key_here" > .env
     npm start
     ```
     The server will run on `http://localhost:3001`.

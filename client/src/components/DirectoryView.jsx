@@ -1,4 +1,11 @@
-export default function DirectoryView() {
+import { useState, useMemo } from 'react';
+
+export default function DirectoryView({ onNavigateToWorkspace }) {
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All Statuses');
+  const [dateFilter, setDateFilter] = useState('All Time');
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 25;
   const documents = [
     {
       name: "Standard_Services_Agreement_v4.pdf",
@@ -57,6 +64,21 @@ export default function DirectoryView() {
     }
   ];
 
+  const filteredDocs = useMemo(() => {
+    return documents.filter(doc => {
+      const matchSearch = doc.name.toLowerCase().includes(search.toLowerCase()) || doc.caseId.toLowerCase().includes(search.toLowerCase());
+      const matchStatus = statusFilter === 'All Statuses' || doc.status === statusFilter;
+      // Mock date filtering logic
+      let matchDate = true;
+      if (dateFilter === 'Last 7 Days') matchDate = doc.date.includes('28') || doc.date.includes('27');
+      if (dateFilter === 'Last 30 Days') matchDate = doc.date.includes('Oct');
+      return matchSearch && matchStatus && matchDate;
+    });
+  }, [search, statusFilter, dateFilter]);
+
+  const totalPages = Math.ceil(filteredDocs.length / rowsPerPage) || 1;
+  const paginatedDocs = filteredDocs.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+
   return (
     <div className="flex-1 overflow-y-auto p-12 bg-surface flex flex-col items-center">
       <div className="w-full max-w-6xl flex flex-col gap-8">
@@ -67,19 +89,52 @@ export default function DirectoryView() {
             <span className="font-headline-md font-bold text-on-surface flex items-center gap-2">
               <span className="material-symbols-outlined">filter_list</span> Filter By:
             </span>
-            <select className="bg-surface-container border border-outline-variant/50 rounded-md px-4 py-2 font-body-ui text-sm text-on-surface focus:outline-none">
+            <input 
+              type="text" 
+              placeholder="Search documents..." 
+              className="bg-surface-container border border-outline-variant/50 rounded-md px-4 py-2 font-body-ui text-sm text-on-surface focus:outline-none w-64"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <select 
+              className="bg-surface-container border border-outline-variant/50 rounded-md px-4 py-2 font-body-ui text-sm text-on-surface focus:outline-none"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
               <option>All Statuses</option>
+              <option>COMPLETE</option>
+              <option>IN REVIEW</option>
+              <option>NEEDS ATTENTION</option>
             </select>
-            <select className="bg-surface-container border border-outline-variant/50 rounded-md px-4 py-2 font-body-ui text-sm text-on-surface focus:outline-none">
+            <select 
+              className="bg-surface-container border border-outline-variant/50 rounded-md px-4 py-2 font-body-ui text-sm text-on-surface focus:outline-none"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+            >
+              <option>All Time</option>
+              <option>Last 7 Days</option>
               <option>Last 30 Days</option>
             </select>
-            <button className="text-sm font-bold text-secondary hover:text-primary transition-colors">Clear All</button>
+            <button 
+              className="text-sm font-bold text-secondary hover:text-primary transition-colors"
+              onClick={() => { setSearch(''); setStatusFilter('All Statuses'); setDateFilter('All Time'); setPage(1); }}
+            >
+              Clear All
+            </button>
           </div>
           <div className="flex items-center gap-4 text-sm text-on-surface-variant font-medium">
-            <span>Showing 24 of 1,402 Documents</span>
+            <span>Showing {filteredDocs.length} of 1,402 Documents</span>
             <div className="flex gap-2">
-              <button className="p-1 hover:bg-surface-container rounded transition-colors"><span className="material-symbols-outlined text-[20px]">chevron_left</span></button>
-              <button className="p-1 hover:bg-surface-container rounded transition-colors"><span className="material-symbols-outlined text-[20px]">chevron_right</span></button>
+              <button 
+                className="p-1 hover:bg-surface-container rounded transition-colors disabled:opacity-50"
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+              ><span className="material-symbols-outlined text-[20px]">chevron_left</span></button>
+              <button 
+                className="p-1 hover:bg-surface-container rounded transition-colors disabled:opacity-50"
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+              ><span className="material-symbols-outlined text-[20px]">chevron_right</span></button>
             </div>
           </div>
         </div>
@@ -95,14 +150,18 @@ export default function DirectoryView() {
           </div>
 
           <div className="flex flex-col divide-y divide-outline-variant/20">
-            {documents.map((doc, i) => (
-              <div key={i} className="grid grid-cols-12 gap-4 px-8 py-6 items-center hover:bg-surface-container-lowest/50 transition-colors">
+            {paginatedDocs.map((doc, i) => (
+              <div 
+                key={i} 
+                className="grid grid-cols-12 gap-4 px-8 py-6 items-center hover:bg-surface-container-lowest/50 transition-colors cursor-pointer"
+                onClick={onNavigateToWorkspace}
+              >
                 <div className="col-span-5 flex items-center gap-4">
                   <div className="w-12 h-12 rounded-lg bg-surface-container border border-outline-variant/30 flex items-center justify-center text-secondary">
                     <span className="material-symbols-outlined">{doc.icon}</span>
                   </div>
                   <div>
-                    <h3 className="font-headline-md text-base font-bold text-on-surface">{doc.name}</h3>
+                    <h3 className="font-headline-md text-base font-bold text-on-surface hover:text-primary transition-colors">{doc.name}</h3>
                     <p className="text-xs text-on-surface-variant mt-1">Case ID: {doc.caseId}</p>
                   </div>
                 </div>
@@ -134,6 +193,11 @@ export default function DirectoryView() {
                 </div>
               </div>
             ))}
+            {paginatedDocs.length === 0 && (
+              <div className="p-8 text-center text-on-surface-variant">
+                No documents match the current filters.
+              </div>
+            )}
           </div>
 
           <div className="px-8 py-4 bg-surface-container-low border-t border-outline-variant/30 flex justify-between items-center text-sm text-on-surface-variant">
@@ -144,12 +208,28 @@ export default function DirectoryView() {
               </select>
             </div>
             <div className="flex items-center gap-4">
-              <span>1-10 of 1,402</span>
+              <span>{Math.min(1 + (page - 1) * rowsPerPage, filteredDocs.length)}-{Math.min(page * rowsPerPage, filteredDocs.length)} of {filteredDocs.length}</span>
               <div className="flex gap-1 text-on-surface">
-                <button className="p-1 hover:bg-surface-container rounded transition-colors"><span className="material-symbols-outlined text-[20px]">first_page</span></button>
-                <button className="p-1 hover:bg-surface-container rounded transition-colors"><span className="material-symbols-outlined text-[20px]">chevron_left</span></button>
-                <button className="p-1 hover:bg-surface-container rounded transition-colors"><span className="material-symbols-outlined text-[20px]">chevron_right</span></button>
-                <button className="p-1 hover:bg-surface-container rounded transition-colors"><span className="material-symbols-outlined text-[20px]">last_page</span></button>
+                <button 
+                  className="p-1 hover:bg-surface-container rounded transition-colors disabled:opacity-50"
+                  onClick={() => setPage(1)}
+                  disabled={page === 1}
+                ><span className="material-symbols-outlined text-[20px]">first_page</span></button>
+                <button 
+                  className="p-1 hover:bg-surface-container rounded transition-colors disabled:opacity-50"
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                ><span className="material-symbols-outlined text-[20px]">chevron_left</span></button>
+                <button 
+                  className="p-1 hover:bg-surface-container rounded transition-colors disabled:opacity-50"
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                ><span className="material-symbols-outlined text-[20px]">chevron_right</span></button>
+                <button 
+                  className="p-1 hover:bg-surface-container rounded transition-colors disabled:opacity-50"
+                  onClick={() => setPage(totalPages)}
+                  disabled={page === totalPages}
+                ><span className="material-symbols-outlined text-[20px]">last_page</span></button>
               </div>
             </div>
           </div>

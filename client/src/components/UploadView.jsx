@@ -84,8 +84,34 @@ export default function UploadView({ onAnalyze, onUseDemoDocument, isAnalyzing, 
       }
     }
 
+    // Parse inline annotations: [[text|type]] or [[text]]
+    let cleanDocumentText = documentText;
+    const inlineAnnotations = [];
+    const regex = /\[\[(.+?)(?:\|(.+?))?\]\]/g;
+    
+    // Replace markers with just the text while recording the annotations
+    cleanDocumentText = cleanDocumentText.replace(regex, (match, text, type) => {
+      // Strip leading honorifics for name redactions to avoid swallowing titles
+      const honorificRegex = /^(?:Mr\.|Mrs\.|Ms\.|Miss|Dr\.|Prof\.|Mr|Mrs|Ms|Dr|Prof)\s+/i;
+      const strippedText = text.replace(honorificRegex, '');
+      
+      inlineAnnotations.push({
+        text: strippedText,
+        type: type || 'unspecified'
+      });
+      return text; // Return the full text (including honorific) to preserve it in the document
+    });
+
+    // Merge inline with JSON (JSON wins on duplicate text)
+    if (inlineAnnotations.length > 0) {
+      const mergedMap = new Map();
+      inlineAnnotations.forEach(ann => mergedMap.set(ann.text, ann));
+      annotations.forEach(ann => mergedMap.set(ann.text, ann));
+      annotations = Array.from(mergedMap.values());
+    }
+
     setParseError(null);
-    onAnalyze(documentText, annotations);
+    onAnalyze(cleanDocumentText, annotations);
   };
 
   const hasContent = documentText.trim().length > 0;
@@ -168,24 +194,14 @@ export default function UploadView({ onAnalyze, onUseDemoDocument, isAnalyzing, 
         {showManualEntry && (
           <section className="paper-card p-lg space-y-md animate-[fadeIn_0.3s_ease-out]">
             <div className="space-y-sm">
-              <label className="font-headline-md text-headline-md text-on-surface block">Document Text</label>
-              <textarea
-                className="w-full h-64 p-md bg-surface-container-low border border-outline-variant rounded-lg font-body-doc text-body-doc text-on-surface focus:ring-1 focus:ring-primary focus:border-primary outline-none"
-                placeholder="Paste the full document text here..."
-                value={documentText}
-                onChange={(e) => setDocumentText(e.target.value)}
-              />
-            </div>
-            
-            <div className="space-y-sm">
               <label className="font-headline-md text-headline-md text-on-surface block">
-                Existing Annotations <span className="text-on-surface-variant font-normal text-sm">(optional)</span>
+                Document Text <span className="text-on-surface-variant font-normal text-sm ml-2">Optionally mark redactions inline using [[text|type]], e.g. [[John Doe|name]]</span>
               </label>
               <textarea
-                className="w-full h-32 p-md bg-surface-container-low border border-outline-variant rounded-lg font-mono text-sm text-on-surface focus:ring-1 focus:ring-primary focus:border-primary outline-none"
-                placeholder={'[\n  { "text": "John Doe", "type": "name" }\n]'}
-                value={annotationsText}
-                onChange={(e) => setAnnotationsText(e.target.value)}
+                className="w-full h-64 p-md bg-surface-container-low border border-outline-variant rounded-lg font-body-doc text-body-doc text-on-surface focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+                placeholder="Paste the full document text here. You can use [[text|type]] markers to manually tag PII..."
+                value={documentText}
+                onChange={(e) => setDocumentText(e.target.value)}
               />
             </div>
             

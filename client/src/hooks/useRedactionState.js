@@ -1,23 +1,22 @@
 import { useReducer, useMemo, useCallback } from 'react';
 
 const SEVERITY_WEIGHTS = {
-  ssn: 10,
-  phone: 9,
-  name: 8,
-  email: 7,
-  date: 2,
-  identifier: 1,
-  organization: 1,
+  high: 1.0,
+  medium: 0.6,
+  low: 0.3,
 };
 
-const HIGH_RISK_THRESHOLD = 4.0;
+const HIGH_RISK_THRESHOLD = 0.5;
 
 function calculateRiskScore(redaction) {
-  const weight = SEVERITY_WEIGHTS[redaction.type] || 1;
+  const weight = SEVERITY_WEIGHTS[redaction.severity?.toLowerCase()] || 0.5;
   return (1 - redaction.confidence) * weight;
 }
 
 function isHighRisk(redaction) {
+  if (redaction.source === 'missed') return true;
+  if (redaction.groundTruth === 'falsePositive') return false;
+  if (redaction.severity?.toLowerCase() === 'high') return true;
   return calculateRiskScore(redaction) >= HIGH_RISK_THRESHOLD;
 }
 
@@ -38,6 +37,7 @@ function reducer(state, action) {
         piiType: redaction.type,
         confidence: redaction.confidence,
         timestamp: Date.now(),
+        actor: 'User'
       };
       return {
         ...state,
@@ -56,6 +56,7 @@ function reducer(state, action) {
         piiType: redaction.type,
         confidence: redaction.confidence,
         timestamp: Date.now(),
+        actor: 'User'
       };
       return {
         ...state,
@@ -74,6 +75,7 @@ function reducer(state, action) {
         piiType: redaction.type,
         confidence: redaction.confidence,
         timestamp: Date.now(),
+        actor: 'User'
       };
       return {
         ...state,
@@ -92,11 +94,20 @@ function reducer(state, action) {
         piiType: redaction.type,
         confidence: redaction.confidence,
         timestamp: Date.now(),
+        actor: 'User'
       };
       return {
         ...state,
         decisions: { ...state.decisions, [redaction.id]: 'approved' },
         decisionLog: [entry, ...state.decisionLog],
+      };
+    }
+
+    case 'SKIP_ITEM': {
+      const { redaction } = action.payload;
+      return {
+        ...state,
+        decisions: { ...state.decisions, [redaction.id]: 'skipped' },
       };
     }
 
@@ -117,6 +128,7 @@ function reducer(state, action) {
         confidence: entry.confidence,
         timestamp: Date.now(),
         undid: entry.action,
+        actor: 'User'
       };
 
       return {
@@ -128,6 +140,50 @@ function reducer(state, action) {
 
     case 'RESET':
       return INITIAL_STATE;
+
+    case 'INITIALIZE_DOCUMENT': {
+      const { redactions } = action.payload;
+      const newDecisions = { ...state.decisions };
+      const newLogs = [];
+
+      redactions.forEach((r) => {
+        if (r.source === 'verified') {
+          if (r.groundTruth === 'correct') {
+            newDecisions[r.id] = 'auto-redacted';
+            newLogs.push({
+              id: Date.now().toString(36) + Math.random().toString(36).substring(2) + r.id,
+              redactionId: r.id,
+              action: 'auto-redacted',
+              text: r.text,
+              piiType: r.type,
+              confidence: r.confidence,
+              timestamp: Date.now(),
+              actor: 'System (Auto)'
+            });
+          } else if (r.groundTruth === 'falsePositive') {
+            newDecisions[r.id] = 'auto-safe';
+            newLogs.push({
+              id: Date.now().toString(36) + Math.random().toString(36).substring(2) + r.id,
+              redactionId: r.id,
+              action: 'auto-safe',
+              text: r.text,
+              piiType: r.type,
+              confidence: r.confidence,
+              timestamp: Date.now(),
+              actor: 'System (Auto)'
+            });
+          }
+        }
+      });
+
+      if (newLogs.length === 0) return state;
+
+      return {
+        ...state,
+        decisions: { ...state.decisions, ...newDecisions },
+        decisionLog: [...newLogs, ...state.decisionLog],
+      };
+    }
 
     default:
       return state;
@@ -149,6 +205,11 @@ export function useRedactionState(redactions) {
       .sort((a, b) => b.riskScore - a.riskScore);
   }, [redactions, state.decisions]);
 
+  const unresolvedItems = useMemo(
+    () => enrichedRedactions.filter((r) => r.status === 'pending' || r.status === 'skipped'),
+    [enrichedRedactions]
+  );
+
   const pendingItems = useMemo(
     () => enrichedRedactions.filter((r) => r.status === 'pending'),
     [enrichedRedactions]
@@ -159,8 +220,10 @@ export function useRedactionState(redactions) {
     [pendingItems]
   );
 
-  const totalPending = pendingItems.length;
-  const highRiskCount = highRiskPending.length;
+  // Exposure meter counts ALL unresolved items, even if skipped
+  const totalPending = unresolvedItems.length;
+  const highRiskCount = unresolvedItems.filter((r) => r.highRisk).length;
+  
   const totalItems = enrichedRedactions.length;
   const resolvedCount = totalItems - totalPending;
   const allClear = highRiskCount === 0 && totalPending === 0;
@@ -195,6 +258,16 @@ export function useRedactionState(redactions) {
     []
   );
 
+  const skipItem = useCallback(
+    (redaction) => dispatch({ type: 'SKIP_ITEM', payload: { redaction } }),
+    []
+  );
+
+  const initializeDocument = useCallback(
+    (redactions) => dispatch({ type: 'INITIALIZE_DOCUMENT', payload: { redactions } }),
+    []
+  );
+
   return {
     enrichedRedactions,
     pendingItems,
@@ -211,6 +284,8 @@ export function useRedactionState(redactions) {
     approveRedaction,
     undo,
     reset,
+    skipItem,
+    initializeDocument,
   };
 }
 
