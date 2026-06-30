@@ -1,38 +1,19 @@
-# Conseal: Confidence Triage
+# Writeup — Conseal: Fixing the Tool's Mistakes
 
-## What was built
+## What I built
 
-Conseal is a functional prototype of a PII redaction correction tool centered around the concept of **Confidence Triage**. The core problem it solves is the user behavior of moving too fast and overtrusting an automated system, which leads to rubber-stamping dangerous mistakes (missed PII).
+The main focus of my solution was improving the review process rather than building a new PII detection system. Instead of making reviewers manually verify every annotation, I designed the interface so that the amount of effort required depends on how risky the decision is.
 
-The application features:
-*   A mock backend serving a realistic document with a deliberate mix of correct redactions, false positives, and missed PII.
-*   A React frontend with a custom, professional dark-mode design system.
-*   A **Risk-Ordered Queue** that surfaces the most dangerous, ambiguous items first.
-*   An **Honest Exposure Meter** that persists until every high-risk item is explicitly resolved.
-*   A **Decision Trail** providing a lightweight audit log with undo capabilities.
+If the existing annotation is something the model agrees with confidently, it is applied automatically. Similarly, annotations that are very likely to be false positives are automatically reverted. The only cases that require human attention are the ones that matter most—new pieces of PII that were missed during the original annotation. Even here, I avoid unnecessary interruptions: very obvious and high-confidence detections (such as clearly formatted identification numbers) can still be applied automatically, but only under a much stricter confidence threshold than the one used for existing annotations.
 
-Crucially, the prototype implements **asymmetric friction**.
+Every automatic action is clearly recorded and can be undone, so nothing happens silently. I also use Gemini 2.5 Flash to detect sensitive information and classify the document type (such as legal, medical, or financial). This allows the system to adjust what it considers sensitive based on the document's context instead of applying the same rules everywhere. The document can only be exported once all pending review decisions have been resolved, ensuring that nothing important is left unchecked.
 
-## The Asymmetric Friction Model
+## What I chose not to build, and why
 
-A uniform review experience (e.g., a simple accept/reject list) conditions users to click through automatically. Conseal intentionally breaks this pattern:
+I intentionally did not implement multi-document batch processing. While handling large volumes of documents is an important problem, it is separate from the correction workflow. Since the challenge was centered around improving the review experience, I chose to spend my time refining that interaction instead of splitting my effort across multiple features.
 
-*   **Low-Risk (False Positives)**: Harmless text wrongly redacted is presented with a frictionless, one-click "Dismiss" action. Slowing the user down here provides no security value and only causes frustration.
-*   **High-Risk (Missed PII)**: Sensitive text left visible (flagged with low confidence by the mock engine) cannot be casually dismissed. It forces an explicit confirmation modal that cannot be closed by clicking the backdrop or pressing Escape. The user *must* consciously choose "Redact This" or "Confirm Safe to Leave Visible".
+I also skipped user accounts, databases, audit logs, and compliance tooling. These are important for a production-ready application, but they are mostly infrastructure and would not demonstrate the core design decisions behind the solution.
 
-This model aligns the UI friction with the actual risk, forcing attention only where it matters.
+Finally, I did not build a custom PII detection model. The objective of the challenge was not to create a better detector but to improve how reviewers interact with detections. Using Gemini allowed me to focus on solving that problem instead of spending valuable time training or integrating a separate detection pipeline.
 
-## Deliberate Scope Omissions
-
-To prioritize a polished core experience within the 8-hour constraint, the following features were intentionally excluded:
-
-*   **No persistent database**: State is managed entirely in-memory on the client via `useReducer`.
-*   **No user authentication or accounts**: The prototype focuses solely on the review interaction.
-*   **No multi-document batch processing**: The focus is deep interaction on a single document.
-*   **No ML model integration**: Detection data is provided via a fixed mock backend payload.
-*   **No audit log export**: The decision trail is view-only within the session.
-
----
-
-*[Placeholder for demo video walkthrough]*
-*[Placeholder for resume]*
+The biggest design decision was resisting the temptation to automate everything. Automatically accepting every high-confidence detection would simply replace one source of overtrust with another. Instead, the system removes friction where the risk is low while ensuring that uncertain or potentially impactful decisions still receive human review. That balance between efficiency and oversight is the central idea behind my solution.

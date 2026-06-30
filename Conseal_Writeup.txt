@@ -1,0 +1,56 @@
+Writeup — Conseal: Fixing the Tool’s Mistakes
+
+What I built
+
+The main focus of my solution was improving the review process rather
+than building a new PII detection system. Instead of making reviewers
+manually verify every annotation, I designed the interface so that the
+amount of effort required depends on how risky the decision is.
+
+If the existing annotation is something the model agrees with
+confidently, it is applied automatically. Similarly, annotations that
+are very likely to be false positives are automatically reverted. The
+only cases that require human attention are the ones that matter
+most—new pieces of PII that were missed during the original annotation.
+Even here, I avoid unnecessary interruptions: very obvious and
+high-confidence detections (such as clearly formatted identification
+numbers) can still be applied automatically, but only under a much
+stricter confidence threshold than the one used for existing
+annotations.
+
+Every automatic action is clearly recorded and can be undone, so nothing
+happens silently. I also use Gemini 2.5 Flash to detect sensitive
+information and classify the document type (such as legal, medical, or
+financial). This allows the system to adjust what it considers sensitive
+based on the document’s context instead of applying the same rules
+everywhere. The document can only be exported once all pending review
+decisions have been resolved, ensuring that nothing important is left
+unchecked.
+
+What I chose not to build, and why
+
+I intentionally did not implement multi-document batch processing. While
+handling large volumes of documents is an important problem, it is
+separate from the correction workflow. Since the challenge was centered
+around improving the review experience, I chose to spend my time
+refining that interaction instead of splitting my effort across multiple
+features.
+
+I also skipped user accounts, databases, audit logs, and compliance
+tooling. These are important for a production-ready application, but
+they are mostly infrastructure and would not demonstrate the core design
+decisions behind the solution.
+
+Finally, I did not build a custom PII detection model. The objective of
+the challenge was not to create a better detector but to improve how
+reviewers interact with detections. Using Gemini allowed me to focus on
+solving that problem instead of spending valuable time training or
+integrating a separate detection pipeline.
+
+The biggest design decision was resisting the temptation to automate
+everything. Automatically accepting every high-confidence detection
+would simply replace one source of overtrust with another. Instead, the
+system removes friction where the risk is low while ensuring that
+uncertain or potentially impactful decisions still receive human review.
+That balance between efficiency and oversight is the central idea behind
+my solution.

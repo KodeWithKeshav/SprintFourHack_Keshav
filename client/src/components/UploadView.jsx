@@ -55,7 +55,7 @@ export default function UploadView({ onAnalyze, onUseDemoDocument, isAnalyzing, 
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragActive(false);
-    
+
     const file = e.dataTransfer.files?.[0];
     if (file && (file.type === 'text/plain' || file.name.endsWith('.txt') || file.name.endsWith('.json'))) {
       const dataTransfer = new DataTransfer();
@@ -88,18 +88,14 @@ export default function UploadView({ onAnalyze, onUseDemoDocument, isAnalyzing, 
     let cleanDocumentText = documentText;
     const inlineAnnotations = [];
     const regex = /\[\[(.+?)(?:\|(.+?))?\]\]/g;
-    
+
     // Replace markers with just the text while recording the annotations
     cleanDocumentText = cleanDocumentText.replace(regex, (match, text, type) => {
-      // Strip leading honorifics for name redactions to avoid swallowing titles
-      const honorificRegex = /^(?:Mr\.|Mrs\.|Ms\.|Miss|Dr\.|Prof\.|Mr|Mrs|Ms|Dr|Prof)\s+/i;
-      const strippedText = text.replace(honorificRegex, '');
-      
       inlineAnnotations.push({
-        text: strippedText,
+        text: text,
         type: type || 'unspecified'
       });
-      return text; // Return the full text (including honorific) to preserve it in the document
+      return text;
     });
 
     // Merge inline with JSON (JSON wins on duplicate text)
@@ -125,7 +121,7 @@ export default function UploadView({ onAnalyze, onUseDemoDocument, isAnalyzing, 
             Secure Redaction Studio
           </h1>
           <p className="font-body-doc text-on-surface-variant text-lg max-w-2xl mx-auto leading-relaxed">
-            Precision AI-driven PII detection meeting the gold standard of <span className="italic font-bold">Digital Parchment</span> protocols. 
+            Precision AI-driven PII detection meeting the gold standard of <span className="italic font-bold">Digital Parchment</span> protocols.
             Irreversible, legal-grade protection for your most sensitive records.
           </p>
         </section>
@@ -146,8 +142,8 @@ export default function UploadView({ onAnalyze, onUseDemoDocument, isAnalyzing, 
             onChange={handleFileUpload}
             className="hidden"
           />
-          
-          <div 
+
+          <div
             className={`paper-card w-full p-12 border-2 border-dashed border-outline-variant flex flex-col items-center justify-center gap-lg transition-all duration-300 group cursor-pointer hover:border-primary/40 ${isDragActive ? 'border-primary bg-primary/5' : ''}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -155,13 +151,13 @@ export default function UploadView({ onAnalyze, onUseDemoDocument, isAnalyzing, 
             onClick={() => fileInputRef.current?.click()}
           >
             <div className="w-24 h-24 bg-surface-container-high rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <span className="material-symbols-outlined text-primary text-5xl" style={{fontVariationSettings: "'wght' 200"}}>upload_file</span>
+              <span className="material-symbols-outlined text-primary text-5xl" style={{ fontVariationSettings: "'wght' 200" }}>upload_file</span>
             </div>
             <div className="text-center space-y-xs">
               <h3 className="font-headline-lg text-headline-lg text-on-surface">Drag and drop or browse your library</h3>
               <p className="font-body-ui text-on-surface-variant">Support for .txt and .json files</p>
             </div>
-            
+
             {/* Security Badges */}
             <div className="flex gap-xl pt-md border-t border-outline-variant/30 w-full justify-center">
               <div className="flex items-center gap-sm text-on-surface-variant/70">
@@ -179,10 +175,10 @@ export default function UploadView({ onAnalyze, onUseDemoDocument, isAnalyzing, 
             </div>
           </div>
         </section>
-        
+
         {/* Manual Entry Toggle */}
         <div className="flex justify-center my-md">
-          <button 
+          <button
             className="text-primary font-label-caps text-label-caps tracking-widest hover:bg-primary-container/20 px-4 py-2 rounded transition-all"
             onClick={() => setShowManualEntry(!showManualEntry)}
           >
@@ -204,7 +200,7 @@ export default function UploadView({ onAnalyze, onUseDemoDocument, isAnalyzing, 
                 onChange={(e) => setDocumentText(e.target.value)}
               />
             </div>
-            
+
             <div className="pt-md border-t border-outline-variant/30 flex justify-end gap-md">
               <button
                 className="px-6 py-2 rounded-lg font-bold border border-outline text-on-surface-variant hover:bg-surface-container-high transition-all"
@@ -236,13 +232,13 @@ export default function UploadView({ onAnalyze, onUseDemoDocument, isAnalyzing, 
 
         {!showManualEntry && (
           <div className="flex justify-center mt-xl">
-             <button
-                className="px-8 py-3 rounded-xl font-bold border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-all"
-                onClick={onUseDemoDocument}
-                disabled={isAnalyzing}
-              >
-                Skip & Use Demo Document
-              </button>
+            <button
+              className="px-8 py-3 rounded-xl font-bold border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-all"
+              onClick={onUseDemoDocument}
+              disabled={isAnalyzing}
+            >
+              Skip & Use Demo Document
+            </button>
           </div>
         )}
 
@@ -250,7 +246,7 @@ export default function UploadView({ onAnalyze, onUseDemoDocument, isAnalyzing, 
         <section className="grid grid-cols-1 md:grid-cols-3 gap-lg pt-xl">
           <div className="paper-card p-lg space-y-md">
             <div className="w-12 h-12 bg-secondary-container rounded flex items-center justify-center">
-              <span className="material-symbols-outlined text-secondary" style={{fontVariationSettings: "'FILL' 1"}}>auto_fix_high</span>
+              <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>auto_fix_high</span>
             </div>
             <h4 className="font-headline-md text-headline-md">AI Assisted</h4>
             <p className="font-body-ui text-on-surface-variant">
@@ -259,7 +255,7 @@ export default function UploadView({ onAnalyze, onUseDemoDocument, isAnalyzing, 
           </div>
           <div className="paper-card p-lg space-y-md">
             <div className="w-12 h-12 bg-primary-container rounded flex items-center justify-center">
-              <span className="material-symbols-outlined text-on-primary-container" style={{fontVariationSettings: "'FILL' 1"}}>history_edu</span>
+              <span className="material-symbols-outlined text-on-primary-container" style={{ fontVariationSettings: "'FILL' 1" }}>history_edu</span>
             </div>
             <h4 className="font-headline-md text-headline-md">Legal Grade</h4>
             <p className="font-body-ui text-on-surface-variant">
@@ -268,7 +264,7 @@ export default function UploadView({ onAnalyze, onUseDemoDocument, isAnalyzing, 
           </div>
           <div className="paper-card p-lg space-y-md">
             <div className="w-12 h-12 bg-tertiary-container rounded flex items-center justify-center">
-              <span className="material-symbols-outlined text-on-tertiary-container" style={{fontVariationSettings: "'FILL' 1"}}>layers_clear</span>
+              <span className="material-symbols-outlined text-on-tertiary-container" style={{ fontVariationSettings: "'FILL' 1" }}>layers_clear</span>
             </div>
             <h4 className="font-headline-md text-headline-md">Irreversible</h4>
             <p className="font-body-ui text-on-surface-variant">

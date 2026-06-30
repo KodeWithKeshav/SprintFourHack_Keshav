@@ -50,8 +50,6 @@ Step 4: Independently scan the full document for sensitive information not cover
 
 Step 5: Assign realistic, varied confidence per item. Confidence reflects certainty this is genuinely the stated type — a clearly formatted SSN matching ###-##-#### is 0.9+; a name in ambiguous context is 0.5–0.7. Assign a severity-appropriate type label ("high", "medium", or "low"). Severity reflects consequence if exposed — government IDs, financial account numbers, medical record numbers, and diagnoses are always 'high' severity regardless of confidence.
 
-CRITICAL INSTRUCTION FOR NAME SPANS: When identifying a name span, NEVER include honorifics or titles (Mr., Mrs., Ms., Dr., Prof., etc.) as part of the span text. The span should contain only the name itself (e.g. "Felix Hoang", not "Mr. Felix Hoang"). This keeps the sentence readable after redaction — "Ms. [REDACTED]" rather than "[REDACTED]" swallowing the title and losing the grammatical context, and avoids accidentally treating a generic title as if it were sensitive data.
-
 Return ONLY valid JSON, no markdown, no commentary:
 {
   "detectedDomain": "legal" | "medical" | "financial" | "hr" | "general",

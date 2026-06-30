@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:3001';
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:3001';
 
 export async function fetchDocument() {
   const response = await fetch(`${API_BASE}/api/document`);
