@@ -1,5 +1,7 @@
 # Conseal
 
+**[🚀 Live Demo](https://sprint-four-hack-keshav.vercel.app/)**
+
 Confidence Triage for PII redaction correction.
 
 Conseal is a prototype tool for reviewing AI-suggested redactions in documents. It addresses a critical human factors issue: reviewers moving fast and overtrusting the machine. By implementing **asymmetric friction**, Conseal makes dangerous mistakes (missed PII) harder to miss than harmless ones (false positives).
