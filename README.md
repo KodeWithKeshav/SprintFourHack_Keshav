@@ -35,3 +35,8 @@ Conseal is a prototype tool for reviewing AI-suggested redactions in documents. 
 *   **Risk-Ordered Queue**: Items are presented based on a risk score (`risk = (1 - confidence) * severityWeight`), ensuring high-risk items are reviewed first.
 *   **Honest Exposure Meter**: A persistent counter reflecting the true remaining risk. It only shows an "All Clear" state when every high-risk item has been explicitly addressed.
 *   **Decision Trail**: A lightweight log of decisions made during the session, allowing users to review and undo actions.
+
+## Demo & Writeup
+
+*   **[Demo Video](./Working%20Video.mp4)**: A quick walkthrough of the application and the interaction model.
+*   **[Full Writeup](./WRITEUP.md)**: Detailed explanation of the design decisions, architecture, and what was intentionally omitted.
