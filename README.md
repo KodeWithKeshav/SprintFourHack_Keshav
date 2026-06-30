@@ -47,17 +47,17 @@ Here is a look at the core interfaces and interactions within Conseal:
 ![Main Interface](./screenshots/main_interface.png)
 *The primary workspace where documents are reviewed. The Risk-Ordered Queue ensures that the most dangerous potential missed PII is surfaced first.*
 
-### Asymmetric Friction in Action
-![Asymmetric Friction](./screenshots/friction_modal.png)
-*While false positives can be dismissed instantly, high-risk unredacted text forces a confirmation modal to prevent accidental rubber-stamping.*
+### PII Libraries
+![PII Libraries](./screenshots/friction_modal.png)
+*Manage automated identification patterns for sensitive data. Each PII category (names, SSNs, emails, etc.) can be toggled on or off and configured individually to match your compliance requirements.*
 
-### Honest Exposure Meter
-![Exposure Meter](./screenshots/exposure_meter.png)
-*The system tracks remaining risk in real-time, refusing to show an "All Clear" until every high-risk item has been explicitly addressed.*
+### Audit Logs
+![Audit Logs](./screenshots/exposure_meter.png)
+*A complete audit trail of every detection and redaction decision. Filter by document, action type, date range, or user — and export to CSV for compliance reporting.*
 
-### Decision Trail
-![Decision Trail](./screenshots/decision_trail.png)
-*A lightweight audit log tracks all actions taken during the session, allowing reviewers to easily undo mistakes.*
+### Settings
+![Settings](./screenshots/decision_trail.png)
+*Configure your profile, workspace preferences, detection sensitivity, and notification rules to tailor the review workflow to your team's needs.*
 
 ## Demo & Writeup
 
